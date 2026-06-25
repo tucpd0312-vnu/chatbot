@@ -17,7 +17,8 @@ import {
     Col,
     Tooltip,
     Alert,
-    Tag
+    Tag,
+    AutoComplete
 } from 'antd';
 import { SaveOutlined, ArrowLeftOutlined, QuestionCircleOutlined, LockOutlined } from '@ant-design/icons';
 import MainLayout from '@/components/Layout/MainLayout';
@@ -37,6 +38,7 @@ export default function CreateChatbotPage() {
     const [loading, setLoading] = useState(false);
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [rolesWithChatbot, setRolesWithChatbot] = useState<string[]>([]);
+    const [llmModels, setLlmModels] = useState<string[]>([]);
     const [form] = Form.useForm();
 
     const noContextBehavior = Form.useWatch('no_context_behavior', form);
@@ -44,7 +46,23 @@ export default function CreateChatbotPage() {
     useEffect(() => {
         fetchDatasets();
         fetchRolesWithChatbot();
+        fetchLLMModels();
     }, []);
+
+    const fetchLLMModels = async () => {
+        try {
+            const data = await chatbotService.getLLMModels();
+            setLlmModels(data.models);
+            if (data.default_model) {
+                form.setFieldsValue({
+                    model: data.default_model
+                });
+            }
+        } catch (error) {
+            console.error("Failed to fetch LLM models", error);
+            setLlmModels([]);
+        }
+    };
 
     const fetchDatasets = async () => {
         try {
@@ -89,7 +107,7 @@ export default function CreateChatbotPage() {
                     reranker: (values.reranker as string) || 'Semantic',
                     rerank_top_n: (values.rerank_top_n as number) || undefined,
                     // LLM Generation
-                    model: (values.model as string) || 'models/gemini-2.5-flash',
+                    model: (values.model as string) || undefined,
                     api_key: (values.api_key as string) || undefined,
                     temperature: (values.temperature as number) ?? 0.7,
                     max_tokens: (values.max_tokens as number) || 2048,
@@ -201,7 +219,7 @@ export default function CreateChatbotPage() {
                                 top_k: 5,
                                 similarity_threshold: 0.5,
                                 reranker: 'ms-marco-MiniLM-L-6-v2',
-                                model: 'models/gemini-2.5-flash',
+                                model: undefined,
                                 temperature: 0.7,
                                 max_tokens: 2048,
                                 no_context_behavior: 'reject',
@@ -435,12 +453,19 @@ export default function CreateChatbotPage() {
                                     <span style={{ fontWeight: 500 }}>Sinh câu trả lời từ AI</span>
                                 </div>
 
-                                <Form.Item name="model" label="AI Model">
-                                    <Select size="large">
-                                        <Option value="models/gemini-2.5-flash">Gemini 2.5 Flash <Tag color="green">Nhanh</Tag></Option>
-                                        <Option value="models/gemini-2.5-pro">Gemini 2.5 Pro <Tag color="purple">Thông minh</Tag></Option>
-                                        <Option value="models/gemini-2.0-flash">Gemini 2.0 Flash</Option>
-                                    </Select>
+                                <Form.Item
+                                    name="model"
+                                    label="AI Model"
+                                    rules={[{ required: true, message: 'Vui lòng chọn hoặc nhập tên AI Model' }]}
+                                >
+                                    <AutoComplete
+                                        size="large"
+                                        placeholder="Chọn từ danh sách hoặc tự nhập tên model (VD: gemma-4-26b-qat, qwen-3.6-35b...)"
+                                        options={llmModels.map(m => ({ value: m, label: m }))}
+                                        filterOption={(inputValue, option) =>
+                                            option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
+                                        }
+                                    />
                                 </Form.Item>
 
                                 <Form.Item name="api_key" label="API Key riêng (tùy chọn)">
