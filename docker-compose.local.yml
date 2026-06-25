@@ -63,6 +63,11 @@ services:
       - redis
     networks:
       - airc_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # 5. Core Service - Image name giống registry
   core_service:
@@ -96,6 +101,11 @@ services:
       - auth_service
     networks:
       - airc_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # 6. Worker Service - Dùng chung image với Core
   worker_service:
