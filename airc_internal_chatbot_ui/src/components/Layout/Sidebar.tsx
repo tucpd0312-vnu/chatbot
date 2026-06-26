@@ -47,7 +47,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
             items.push({
                 key: '/dashboard',
                 icon: <DashboardOutlined />,
-                label: 'Dashboard',
+                label: 'Bảng điều khiển',
             });
         }
 
@@ -57,17 +57,17 @@ const MainSidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
                 {
                     key: '/admin/permissions',
                     icon: <SafetyCertificateOutlined />,
-                    label: 'Permissions',
+                    label: 'Quyền hạn',
                 },
                 {
                     key: '/admin/roles',
                     icon: <SafetyCertificateOutlined />,
-                    label: 'Roles',
+                    label: 'Vai trò',
                 },
                 {
                     key: '/admin/users',
                     icon: <TeamOutlined />,
-                    label: 'Users',
+                    label: 'Người dùng',
                 },
                 {
                     key: '/admin/chatbots',
@@ -77,7 +77,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
                 {
                     key: '/dashboard/datasets',
                     icon: <DatabaseOutlined />,
-                    label: 'Datasets',
+                    label: 'Bộ dữ liệu',
                 }
             );
         }
@@ -88,7 +88,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
                 {
                     key: '/dashboard/datasets',
                     icon: <DatabaseOutlined />,
-                    label: 'Datasets',
+                    label: 'Bộ dữ liệu',
                 }
             );
         }
@@ -97,7 +97,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
         items.push({
             key: '/dashboard/chat',
             icon: <MessageOutlined />,
-            label: 'AI Chat',
+            label: 'Trò chuyện AI',
         });
 
         return items;
