@@ -76,7 +76,30 @@ class LLMService:
             # Kiểm tra HTTP status code
             if response.status_code != 200:
                 logger.error(f"[LLM] API returned error status: {response.status_code} | Detail: {response.text}")
-                return f"Lỗi Server AI: API trả về mã lỗi {response.status_code}. Vui lòng kiểm tra lại cấu hình."
+                try:
+                    err_json = response.json()
+                    err_detail = err_json.get("error", {})
+                    if isinstance(err_detail, dict):
+                        err_msg = err_detail.get("message") or err_detail.get("details")
+                    else:
+                        err_msg = str(err_detail)
+                except Exception:
+                    err_msg = None
+                
+                friendly_message = f"Lỗi Server AI (Mã lỗi {response.status_code}): "
+                if err_msg:
+                    # Phân tích thông báo lỗi quá tải, giới hạn
+                    if response.status_code == 503 or "demand" in err_msg.lower() or "overloaded" in err_msg.lower():
+                        friendly_message += "Mô hình hiện đang quá tải do có lượng truy cập rất cao. Vui lòng thử lại sau vài giây hoặc cấu hình đổi sang mô hình khác."
+                    elif response.status_code == 429:
+                        friendly_message += "Đã vượt quá giới hạn số lượt gọi (Rate Limit) cho phép của API Key. Vui lòng kiểm tra lại hạn mức tài khoản."
+                    elif response.status_code == 401 or response.status_code == 403:
+                        friendly_message += "Khóa API Key không hợp lệ hoặc đã hết hạn. Vui lòng cập nhật cấu hình API."
+                    else:
+                        friendly_message += f"{err_msg}"
+                else:
+                    friendly_message += "Phản hồi lỗi từ máy chủ AI không xác định. Vui lòng kiểm tra lại cài đặt dịch vụ."
+                return friendly_message
                 
             response_json = response.json()
             
