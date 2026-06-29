@@ -165,8 +165,6 @@ class ErrorResponse(BaseModel):
 class ChatSessionCreate(BaseModel):
     """Request: Tạo phiên chat mới"""
     name: str = Field(..., min_length=1, description="Tên phiên chat")
-    parent_id: Optional[str] = Field(default=None, description="ID của session cha nếu đây là nhánh rẽ")
-    branch_message_index: Optional[int] = Field(default=None, description="Index của tin nhắn bắt đầu rẽ nhánh")
 
 
 class ChatSessionUpdate(BaseModel):
@@ -181,8 +179,6 @@ class ChatSessionResponse(BaseModel):
     name: str
     created_at: datetime
     updated_at: Optional[datetime] = None
-    parent_id: Optional[str] = None
-    branch_message_index: Optional[int] = None
 
 
 class ChatMessageCreate(BaseModel):

@@ -47,7 +47,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
             items.push({
                 key: '/dashboard',
                 icon: <DashboardOutlined />,
-                label: 'Bảng điều khiển',
+                label: 'Dashboard',
             });
         }
 
@@ -57,17 +57,17 @@ const MainSidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
                 {
                     key: '/admin/permissions',
                     icon: <SafetyCertificateOutlined />,
-                    label: 'Quyền hạn',
+                    label: 'Permissions',
                 },
                 {
                     key: '/admin/roles',
                     icon: <SafetyCertificateOutlined />,
-                    label: 'Vai trò',
+                    label: 'Roles',
                 },
                 {
                     key: '/admin/users',
                     icon: <TeamOutlined />,
-                    label: 'Người dùng',
+                    label: 'Users',
                 },
                 {
                     key: '/admin/chatbots',
@@ -77,7 +77,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
                 {
                     key: '/dashboard/datasets',
                     icon: <DatabaseOutlined />,
-                    label: 'Bộ dữ liệu',
+                    label: 'Datasets',
                 }
             );
         }
@@ -88,7 +88,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
                 {
                     key: '/dashboard/datasets',
                     icon: <DatabaseOutlined />,
-                    label: 'Bộ dữ liệu',
+                    label: 'Datasets',
                 }
             );
         }
@@ -97,7 +97,7 @@ const MainSidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
         items.push({
             key: '/dashboard/chat',
             icon: <MessageOutlined />,
-            label: 'Trò chuyện AI',
+            label: 'AI Chat',
         });
 
         return items;

@@ -14,12 +14,10 @@ async def create_session(
     current_user: User = Depends(get_current_user),
     session_repo: SessionRepository = Depends(dependencies.get_session_repo)
 ):
-    return await session_repo.create_session(
-        current_user.id,
-        session_in.name,
-        session_in.parent_id,
-        session_in.branch_message_index
-    )
+    """
+    Create a new chat session for the current user.
+    """
+    return await session_repo.create_session(current_user.id, session_in.name)
 
 @router.get("/", response_model=List[ChatSession], status_code=status.HTTP_200_OK)
 async def get_user_sessions(

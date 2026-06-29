@@ -10,7 +10,6 @@ import useAuthStore from '@/stores/authStore';
 import useChatStore from '@/stores/chatStore';
 import { chatbotService } from '@/services/chatbotService';
 import { Chatbot } from '@/types/chatbot';
-import ChatMessageItem from '@/components/Chat/ChatMessageItem';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -31,9 +30,7 @@ export default function StudentChat() {
         currentSessionId,
         deleteSession,
         selectChatbot,
-        chatbotId,
-        createBranch,
-        regenerateMessage
+        chatbotId
     } = useChatStore();
 
     const router = useRouter();
@@ -148,7 +145,7 @@ export default function StudentChat() {
     };
 
     const filteredSessions = sessions.filter(s =>
-        !s.parent_id && s.name.toLowerCase().includes(searchTerm.toLowerCase())
+        s.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const activeSessionName = sessions.find(s => s.id === currentSessionId)?.name || 'Cuộc trò chuyện mới';
@@ -209,53 +206,6 @@ export default function StudentChat() {
             <p className="text-gray-500 max-w-md">Hãy đặt câu hỏi về quy chế, đào tạo, hoặc bất kỳ vấn đề nào bạn cần hỗ trợ.</p>
         </div>
     );
-
-    // Lấy danh sách các nhánh session tại vị trí tin nhắn có index
-    const getBranchesAt = (idx: number) => {
-        if (!currentSessionId || !sessions) return [];
-        
-        // 1. Tìm root session
-        let rootId = currentSessionId;
-        let current = sessions.find(s => s.id === currentSessionId);
-        while (current && current.parent_id) {
-            const currentParentId = current.parent_id;
-            const parent = sessions.find(s => s.id === currentParentId);
-            if (!parent) break;
-            current = parent;
-            rootId = current.id;
-        }
-
-        // 2. Tìm tất cả session con/cháu trong gia đình
-        const familyIds = [rootId];
-        let added = true;
-        while (added) {
-            added = false;
-            for (const s of sessions) {
-                if (s.parent_id && familyIds.includes(s.parent_id) && !familyIds.includes(s.id)) {
-                    familyIds.push(s.id);
-                    added = true;
-                }
-            }
-        }
-        const familySessions = sessions.filter(s => familyIds.includes(s.id));
-
-        // 3. Tìm các session rẽ nhánh tại index idx
-        const branchSessions = familySessions.filter(s => s.branch_message_index === idx);
-        if (branchSessions.length === 0) return [];
-
-        // 4. Các nhánh tại vị trí idx gồm session cha và các con rẽ nhánh từ cha tại index idx
-        const parentId = branchSessions[0].parent_id;
-        if (!parentId) return [];
-
-        const allBranches = [
-            parentId,
-            ...familySessions
-                .filter(s => s.parent_id === parentId && s.branch_message_index === idx)
-                .map(s => s.id)
-        ];
-
-        return Array.from(new Set(allBranches));
-    };
 
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50">
@@ -379,7 +329,7 @@ export default function StudentChat() {
 
                     <div className="flex items-center gap-2">
                         <span className="hidden sm:inline text-xs text-white bg-red-500 px-2 py-1 rounded-full">
-                            Đã bật RAG
+                            RAG Enabled
                         </span>
                         {/* Mobile Logout */}
                         <Button
@@ -396,22 +346,34 @@ export default function StudentChat() {
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50">
                     {messages.length === 0 ? renderEmptyState() : (
                         <div className="max-w-3xl mx-auto space-y-6">
-                            {messages.map((msg, idx) => {
-                                const branches = getBranchesAt(idx);
-                                const currentBranchIndex = branches.indexOf(currentSessionId || '');
+                            {messages.map((msg) => {
+                                const isUser = msg.role === 'user';
                                 return (
-                                    <ChatMessageItem
-                                        key={msg.id || idx}
-                                        message={msg}
-                                        index={idx}
-                                        isLast={idx === messages.length - 1}
-                                        loading={loading}
-                                        onEditAndSubmit={createBranch}
-                                        onRegenerate={regenerateMessage}
-                                        branches={branches}
-                                        currentBranchIndex={currentBranchIndex}
-                                        onBranchChange={selectSession}
-                                    />
+                                    <div key={msg.id} className={`flex gap-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
+                                        {!isUser && (
+                                            <Avatar
+                                                icon={<RobotOutlined />}
+                                                className="bg-red-500 shadow-sm shrink-0 mt-1"
+                                            />
+                                        )}
+
+                                        <div className={`
+                                            max-w-[85%] sm:max-w-[75%] rounded-2xl px-5 py-3 shadow-sm text-[15px] leading-relaxed
+                                            ${isUser
+                                                ? 'bg-red-600 text-white rounded-br-none'
+                                                : 'bg-white text-gray-800 rounded-bl-none border border-gray-200'}
+                                        `}>
+                                            <div className="whitespace-pre-wrap">{msg.content}</div>
+                                        </div>
+
+                                        {isUser && (
+                                            <Avatar
+                                                icon={<UserOutlined />}
+                                                className="bg-gray-600 shadow-sm shrink-0 mt-1"
+                                                src={user?.avatar_url}
+                                            />
+                                        )}
+                                    </div>
                                 );
                             })}
 
@@ -432,18 +394,16 @@ export default function StudentChat() {
                 {/* Input Area */}
                 <div className="p-4 bg-white border-t border-gray-100">
                     <div className="max-w-3xl mx-auto relative">
-                        <div className="flex gap-2 items-end bg-white border border-gray-200 rounded-2xl p-2 shadow-sm focus-within:ring-2 focus-within:ring-red-100 focus-within:border-red-400 transition-all">
+                        <div className="flex gap-2 items-end bg-white border border-gray-300 rounded-2xl p-2 shadow-sm focus-within:ring-2 focus-within:ring-red-100 focus-within:border-red-400 transition-all">
                             <TextArea
                                 value={inputValue}
                                 onChange={e => setInputValue(e.target.value)}
                                 onKeyDown={handleKeyDown}
                                 placeholder={selectedChatbot ? "Nhập câu hỏi của bạn..." : "Đang tải chatbot..."}
                                 autoSize={{ minRows: 1, maxRows: 6 }}
-                                className="border-none shadow-none bg-transparent text-[16px] px-3 py-2 focus:ring-0 focus:border-transparent"
+                                className="border-none shadow-none bg-transparent text-[16px] px-3 py-2"
                                 style={{ resize: 'none' }}
                                 disabled={!selectedChatbot}
-                                bordered={false}
-                                variant="borderless"
                             />
                             <Button
                                 type="primary"
@@ -452,11 +412,7 @@ export default function StudentChat() {
                                 icon={<SendOutlined />}
                                 onClick={handleSend}
                                 disabled={!inputValue.trim() || loading || !selectedChatbot}
-                                className={`mb-0.5 mr-0.5 shadow-md flex items-center justify-center ${
-                                    inputValue.trim() && !loading && selectedChatbot
-                                        ? 'bg-red-600 hover:bg-red-700 border-none text-white'
-                                        : 'bg-gray-100 text-gray-400 border-none'
-                                }`}
+                                className="mb-0.5 mr-0.5 bg-red-600 hover:bg-red-700 border-none shadow-md"
                             />
                         </div>
                         <div className="text-center mt-2">

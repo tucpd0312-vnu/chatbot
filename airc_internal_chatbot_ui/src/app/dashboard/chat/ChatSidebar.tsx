@@ -52,11 +52,11 @@ export default function ChatSidebar({ className }: { className?: string }) {
     // Xóa session với confirmation
     const handleDelete = (id: string) => {
         Modal.confirm({
-            title: 'Xóa đoạn chat này?',
-            content: 'Bạn không thể khôi phục sau khi xóa.',
-            okText: 'Xóa',
+            title: 'Xoa doan chat nay?',
+            content: 'Ban khong the khoi phuc sau khi xoa.',
+            okText: 'Xoa',
             okType: 'danger',
-            cancelText: 'Hủy',
+            cancelText: 'Huy',
             onOk: () => deleteSession(id)
         });
     };
@@ -69,7 +69,7 @@ export default function ChatSidebar({ className }: { className?: string }) {
         const menuItems: MenuProps['items'] = [
             {
                 key: 'rename',
-                label: 'Đổi tên',
+                label: 'Doi ten',
                 icon: <EditOutlined />,
                 onClick: ({ domEvent }) => {
                     domEvent.stopPropagation();
@@ -78,7 +78,7 @@ export default function ChatSidebar({ className }: { className?: string }) {
             },
             {
                 key: 'delete',
-                label: 'Xóa',
+                label: 'Xoa',
                 icon: <DeleteOutlined />,
                 danger: true,
                 onClick: ({ domEvent }) => {
@@ -141,13 +141,13 @@ export default function ChatSidebar({ className }: { className?: string }) {
 
     // Filter sessions
     const filteredSessions = sessions.filter(s =>
-        !s.parent_id && s.name.toLowerCase().includes(searchTerm.toLowerCase())
+        s.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-        <div
-            className={`flex flex-col h-full ${className}`}
-            style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+        <Card
+            className={`flex flex-col h-full shadow-sm ${className}`}
+            bodyStyle={{ padding: 0, display: 'flex', flexDirection: 'column', height: '100%' }}
         >
             {/* Nút tạo chat mới */}
             <div className="p-3 border-b space-y-3">
@@ -158,11 +158,11 @@ export default function ChatSidebar({ className }: { className?: string }) {
                     onClick={handleCreateSession}
                     size="large"
                 >
-                    Chat mới
+                    Chat moi
                 </Button>
                 <Input
                     prefix={<SearchOutlined className="text-gray-400" />}
-                    placeholder="Tìm kiếm đoạn chat..."
+                    placeholder="Tim kiem doan chat..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     allowClear
@@ -174,7 +174,7 @@ export default function ChatSidebar({ className }: { className?: string }) {
                 {filteredSessions.length === 0 ? (
                     <div className="text-center text-gray-400 mt-10">
                         <MessageOutlined style={{ fontSize: 30, marginBottom: 10 }} />
-                        <p>{searchTerm ? 'Không tìm thấy kết quả' : 'Chưa có đoạn chat nào'}</p>
+                        <p>{searchTerm ? 'Khong tim thay ket qua' : 'Chua co doan chat nao'}</p>
                     </div>
                 ) : (
                     <div className="flex flex-col">
@@ -185,6 +185,6 @@ export default function ChatSidebar({ className }: { className?: string }) {
 
             {/* Footer Actions if needed (like Clear Screen but maybe move to header?) */}
             {/* Keeping it simple as requested "Delete unnecessary things" */}
-        </div>
+        </Card>
     );
 }
