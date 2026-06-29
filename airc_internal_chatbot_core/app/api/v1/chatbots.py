@@ -15,10 +15,50 @@ from app.api.dependencies import get_chatbot_service, get_current_user
 from app.models.auth import User
 from typing import List, Optional
 import logging
+import httpx
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+@router.get("/meta/llm-models")
+async def get_available_llm_models(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Lấy danh sách các LLM model khả dụng từ server local hoặc cloud API (OpenAI-compatible)
+    và model mặc định được cấu hình trong hệ thống (.env)
+    """
+    default_model = settings.llm_model_name
+    models = []
+    try:
+        base_url = settings.llm_api_base_url.rstrip("/")
+        endpoint = f"{base_url}/models"
+        
+        headers = {}
+        if settings.llm_api_key:
+            headers["Authorization"] = f"Bearer {settings.llm_api_key}"
+            
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(endpoint, headers=headers)
+            if response.status_code == 200:
+                data = response.json()
+                models_data = data.get("data", [])
+                models = [m.get("id") for m in models_data if m.get("id")]
+    except Exception as e:
+        logger.warning(f"[LLM Models] Error fetching models from {settings.llm_api_base_url}: {e}")
+        
+    # Luôn đảm bảo default_model có mặt trong danh sách gợi ý
+    if default_model and default_model not in models:
+        models.insert(0, default_model)
+        
+    return {
+        "models": models,
+        "default_model": default_model
+    }
+
 
 
 @router.post("", response_model=ChatbotResponse, status_code=201)

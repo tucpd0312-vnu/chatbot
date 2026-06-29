@@ -133,6 +133,8 @@ class ChatService:
         rag_api_key = None
         rag_model = None
         rag_system_prompt = None
+        rag_temperature = 0.7
+        rag_max_tokens = 2048
         
         if chatbot_id and self.chatbot_repo:
             chatbot = await self.chatbot_repo.get_by_id(chatbot_id)
@@ -192,6 +194,8 @@ class ChatService:
                     rag_api_key = cfg.get("api_key") # Extract API Key
                     rag_model = cfg.get("model")     # Extract Model
                     rag_system_prompt = cfg.get("system_prompt") # Extract Prompt
+                    rag_temperature = cfg.get("temperature", 0.7)
+                    rag_max_tokens = cfg.get("max_tokens", 2048)
                     
                     # Update debug metrics with config info
                     debug_metrics["model_used"] = rag_model
@@ -310,7 +314,9 @@ class ChatService:
         answer = await self._generate_answer(
             prompt, 
             api_key=rag_api_key, 
-            model_name=rag_model
+            model_name=rag_model,
+            temperature=rag_temperature,
+            max_tokens=rag_max_tokens
         )
         debug_metrics["llm_time_ms"] = round((time.time() - start_llm) * 1000, 2)
 
@@ -548,10 +554,23 @@ class ChatService:
         except Exception as e:
             logger.warning(f"[CHAT] Rerank warning: {e}")
 
-    async def _generate_answer(self, prompt: str, api_key: Optional[str] = None, model_name: Optional[str] = None) -> str:
+    async def _generate_answer(
+        self, 
+        prompt: str, 
+        api_key: Optional[str] = None, 
+        model_name: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2048
+    ) -> str:
         """Gọi LLM sinh câu trả lời, handle lỗi."""
         try:
-            return await llm_service.generate(prompt, api_key=api_key, model_name=model_name)
+            return await llm_service.generate(
+                prompt, 
+                api_key=api_key, 
+                model_name=model_name,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
         except Exception as e:
             logger.exception(f"[CHAT] LLM Generation Error: {e}")
             return "Xin lỗi, hệ thống AI đang gặp sự cố. Vui lòng thử lại sau."

@@ -2,6 +2,8 @@
 from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
+from app.core.config import settings
+
 class ChatbotConfigModel(BaseModel):
     """
     Cấu hình đầy đủ cho Chatbot RAG Pipeline
@@ -49,7 +51,7 @@ class ChatbotConfigModel(BaseModel):
     # 🤖 LLM GENERATION SETTINGS - Cấu hình sinh câu trả lời
     # ═══════════════════════════════════════════════════════════════
     model: Optional[str] = Field(
-        default="models/gemini-2.5-flash", 
+        default=settings.llm_model_name, 
         description="Model LLM sử dụng"
     )
     api_key: Optional[str] = Field(

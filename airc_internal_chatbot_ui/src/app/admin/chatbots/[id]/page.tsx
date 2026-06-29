@@ -17,7 +17,8 @@ import {
     Alert,
     Tag,
     Row,
-    Col
+    Col,
+    AutoComplete
 } from 'antd';
 import {
     RobotOutlined,
@@ -55,6 +56,7 @@ export default function EditChatbotPage() {
     const [chatbot, setChatbot] = useState<Chatbot | null>(null);
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [rolesWithChatbot, setRolesWithChatbot] = useState<string[]>([]);
+    const [llmModels, setLlmModels] = useState<string[]>([]);
 
     // Watch no_context_behavior for conditional rendering
     const noContextBehavior = Form.useWatch('no_context_behavior', form);
@@ -72,15 +74,17 @@ export default function EditChatbotPage() {
         setLoading(true);
         try {
             // Fetch data
-            const [botData, datasetsData, roles] = await Promise.all([
+            const [botData, datasetsData, roles, llmModelsData] = await Promise.all([
                 chatbotService.getChatbot(chatbotId),
                 datasetService.getDatasets(),
                 chatbotService.getRolesWithChatbot(chatbotId), // exclude current chatbot
+                chatbotService.getLLMModels().catch(() => ({ models: [], default_model: '' }))
             ]);
 
             setChatbot(botData);
             setDatasets(datasetsData);
             setRolesWithChatbot(roles);
+            setLlmModels(llmModelsData.models);
 
             // Set form values from chatbot data
             form.setFieldsValue({
@@ -100,7 +104,7 @@ export default function EditChatbotPage() {
                 reranker: botData.config.reranker || 'ms-marco-MiniLM-L-6-v2',
                 rerank_top_n: botData.config.rerank_top_n,
                 // Config - LLM
-                model: botData.config.model || 'models/gemini-2.5-flash',
+                model: botData.config.model || llmModelsData.default_model,
                 api_key: botData.config.api_key,
                 temperature: botData.config.temperature ?? 0.7,
                 max_tokens: botData.config.max_tokens || 2048,
@@ -467,12 +471,19 @@ export default function EditChatbotPage() {
                                     <span style={{ fontWeight: 500 }}>Sinh câu trả lời từ AI</span>
                                 </div>
 
-                                <Form.Item name="model" label="AI Model">
-                                    <Select size="large">
-                                        <Option value="models/gemini-2.5-flash">Gemini 2.5 Flash <Tag color="green">Nhanh</Tag></Option>
-                                        <Option value="models/gemini-2.5-pro">Gemini 2.5 Pro <Tag color="purple">Thông minh</Tag></Option>
-                                        <Option value="models/gemini-2.0-flash">Gemini 2.0 Flash</Option>
-                                    </Select>
+                                <Form.Item
+                                    name="model"
+                                    label="AI Model"
+                                    rules={[{ required: true, message: 'Vui lòng chọn hoặc nhập tên AI Model' }]}
+                                >
+                                    <AutoComplete
+                                        size="large"
+                                        placeholder="Chọn từ danh sách hoặc tự nhập tên model (VD: gemma-4-26b-qat, qwen-3.6-35b...)"
+                                        options={llmModels.map(m => ({ value: m, label: m }))}
+                                        filterOption={(inputValue, option) =>
+                                            option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
+                                        }
+                                    />
                                 </Form.Item>
 
                                 <Form.Item name="api_key" label="API Key riêng (tùy chọn)">
